@@ -1,0 +1,19 @@
+{
+  "name": "editor",
+  "version": "0.0.0",
+  "description": "Real Time Editor for Codeyard",
+  "main": "index.js",
+  "dependencies": {
+    "body-parser": "^1.9.3",
+    "express": "^4.10.4",
+    "mongoose": "^3.8.19",
+    "redis": "^0.12.1",
+    "socket.io": "^1.2.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Shubhank Srivastava, Abhishek Jairath, Aman Srivastava",
+  "license": "ISC"
+}
