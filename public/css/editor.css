@@ -1,0 +1,13 @@
+#firepad{
+      border: 1px solid rgb(200,200,200);
+      height: 600px;
+}
+.chatbox{
+      border:1px solid rgb(200,200,200);
+      height: 450px;
+      border-bottom: 0;
+}
+.row{
+      margin-right: 3%;
+      margin-left: 3%;
+}

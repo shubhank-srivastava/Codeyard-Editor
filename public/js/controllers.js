@@ -1,5 +1,7 @@
-angular.module('Codeyard',[])
-.controller('EditorController', ['$scope',
+'use strict';
+var Codeyard = angular.module('Codeyard',['ui.router']);
+
+Codeyard.controller('EditorController', ['$scope',
   function($scope) {
     $scope.file = 'FILENAME';
     $scope.init = function() {
