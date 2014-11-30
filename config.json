@@ -1,0 +1,27 @@
+{
+    "core": {
+        "css": {
+            "bower_components/dist.min.css": [
+                "bower_components/bootstrap/dist/css/bootstrap.css",
+                "bower_components/codemirror/lib/codemirror.css",
+                "bower_components/firepad/firepad.css",
+                "public/css/editor.css"
+            ]
+        },
+        "js": {
+            "bower_components/dist.min.js": [
+                "bower_components/jquery/dist/jquery.min.js",
+                "bower_components/angular/angular.js",
+                "bower_components/angular-ui-router/release/angular-ui-router.js",
+                "bower_components/bootstrap/dist/js/bootstrap.js",
+                "bower_components/angular-socket-io/socket.min.js",
+                "bower_components/firebase/firebase.js",
+                "bower_components/codemirror/lib/codemirror.js",
+                "bower_components/firepad/firepad.js",
+                "public/js/controllers.js",
+                "public/js/services.js",
+                "public/js/routes.js"
+            ]
+        }
+    }
+}
