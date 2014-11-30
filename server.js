@@ -30,7 +30,7 @@ var JSaggregator = function(){
     },function(err){
     	if (err) {console.log(err)};
     	fs.writeFile(dist,JS,function(err,result){
-            console.log('CSS LOADED');
+            console.log('JS LOADED');
     	});
     });
 };
@@ -47,7 +47,7 @@ var CSSaggregator = function(){
     },function(err){
     	if (err) {console.log(err)};
     	fs.writeFile(dist,CSS,function(err,result){
-           console.log('JS LOADED');
+           console.log('CSS LOADED');
     	});
     });
 };
@@ -60,7 +60,20 @@ app.use(/.*\.css/,function(req,res){
 	res.sendFile(__dirname+'/bower_components/dist.min.css');
 });
 
-app.get('/',function(req,res){
+app.use('/:username/:key',function(req,res,next){
+    var client = require('redis').createClient();
+    client.get(req.params.key,function(err,data){
+        if(err) res.send('Invalid request');
+        var doc = JSON.parse(data);
+        if(doc.room.hasOwnProperty(req.params.username)&&doc.room[req.params.username]===null){
+            //Assign Socket
+            next();
+        }else
+            res.send('You are not authorized for Real-Time Collaboration on this repository.');
+    });
+});
+
+app.get('/:username/:key',function(req,res){
     res.render('view.html');
 });
 
