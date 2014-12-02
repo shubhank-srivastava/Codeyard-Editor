@@ -17,6 +17,7 @@
                 "bower_components/angular-socket-io/socket.min.js",
                 "bower_components/firebase/firebase.js",
                 "bower_components/codemirror/lib/codemirror.js",
+                "bower_components/socket.io/socket.io.js",
                 "bower_components/firepad/firepad.js",
                 "public/js/controllers.js",
                 "public/js/services.js",

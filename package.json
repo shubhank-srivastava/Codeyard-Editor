@@ -9,7 +9,8 @@
     "express": "^4.10.4",
     "mongoose": "^3.8.19",
     "redis": "^0.12.1",
-    "socket.io": "^1.2.1"
+    "socket.io": "^1.2.1",
+    "unirest": "^0.3.0"
   },
   "devDependencies": {},
   "scripts": {

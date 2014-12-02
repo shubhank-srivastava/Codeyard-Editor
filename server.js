@@ -5,6 +5,10 @@ var http = require('http').Server(app);
 var config = require('./config.json');
 var fs = require('fs');
 var async = require('async');
+var unirest = require('unirest');
+var io;
+var client = require('redis').createClient();
+
 
 app.engine('html', require('ejs').renderFile);
 app.set('env', process.env.NODE_ENV);
@@ -52,29 +56,105 @@ var CSSaggregator = function(){
     });
 };
 
+var findOnline = function(contributors,cb){
+	var online = [];
+	var info = {};
+	async.each(contributors,function(item,iterate){
+		client.select(1,function(){
+			client.get(item._id,function(socket){
+				console.log(item._id);
+				console.log(socket);
+				if(socket){
+					console.log(socket);
+					info={
+						'userid':item._id,
+						'username':item.username,
+						'socketid':socket
+					};
+					online.push(info);
+				}
+				iterate();
+			});
+		});
+	},function(err){
+		console.log(online);
+		cb(online);
+	});
+};
+
+var setSocket = function(userid,fileid,repo,username){
+	var contributors = [];
+	io = require('socket.io')(http);
+	io.on('connection',function (socket){		
+		client.select(1,function(){
+			client.set(userid,socket.id,function(err,res){
+				if(err)
+					console.log('Error setting user and socket in redis');
+				else{
+					console.log(userid+' and '+socket.id+ ' set successfully.');
+					findOnline(repo.contributors,function(online){
+						console.log(online);
+						io.to(fileid).emit('onlineContributors',{contributors:online});
+					});
+				}
+			});
+		});
+
+		socket.join(fileid);
+
+		socket.emit('init',{repo:repo,userid:userid,file:fileid,username:username});
+
+		socket.on('disconnect',function(){
+			client.select(1,function(){
+				client.del(userid);
+			});
+		});
+
+		socket.on('sendMessage',function(data){
+			io.to(data.file).emit('updateChat',{from:data.by,message:data.message});
+		});
+	});
+};
+
+
 app.use(/.*\.js/,function(req,res){
 	res.sendFile(__dirname+'/bower_components/dist.min.js');
 });
+
 
 app.use(/.*\.css/,function(req,res){
 	res.sendFile(__dirname+'/bower_components/dist.min.css');
 });
 
-app.use('/:username/:key',function(req,res,next){
-    var client = require('redis').createClient();
-    client.get(req.params.key,function(err,data){
-        if(err) res.send('Invalid request');
-        var doc = JSON.parse(data);
-        if(doc.room.hasOwnProperty(req.params.username)&&doc.room[req.params.username]===null){
-            //Assign Socket
-            next();
-        }else
-            res.send('You are not authorized for Real-Time Collaboration on this repository.');
-    });
+app.use('/editor/:userid/:key',function(req,res,next){
+	client.select('0',function(){
+		client.get(req.params.key,function(err,data){
+			if(err) console.log(err);
+			if(data){
+				data = JSON.parse(data);			
+				async.each(data.repo.contributors,function(item,iterate){
+					if(item._id == req.params.userid){
+						setSocket(req.params.userid,req.params.key,data.repo,item.username);
+						next();
+					}
+					else
+						iterate();
+				},function(err){
+					res.send('You are not authorised to work in this repo.');
+				});	
+			}
+			else
+				res.send('No such file in the database'); 
+		});
+	});
 });
 
-app.get('/:username/:key',function(req,res){
+app.get('/editor/:userid/:key',function(req,res){
     res.render('view.html');
+});
+
+app.get('/',function(req,res){
+	res.send("This");
 });
 
 CSSaggregator();

@@ -1,9 +1,11 @@
 'use strict';
-var Codeyard = angular.module('Codeyard',['ui.router']);
+var Codeyard = angular.module('Codeyard',['ui.router','btford.socket-io']);
 
-Codeyard.controller('EditorController', ['$scope',
-  function($scope) {
+Codeyard.controller('EditorController', ['$scope', 'mySocket',
+  function($scope,mySocket) {
+    $scope.message = '';
     $scope.file = 'FILENAME';
+    $scope.contributors = [];
     $scope.init = function() {
       var firepadRef = getExampleRef();
       // Create CodeMirror (with lineWrapping on).
@@ -37,4 +39,31 @@ Codeyard.controller('EditorController', ['$scope',
       return ref;
     }
 
+    mySocket.on('connection',function(){
+      console('SOcket started');
+    });
+
+    mySocket.on('init',function(data){
+      $scope.repo = data.repo;
+      $scope.userid = data.userid;
+      $scope.file = data.file;
+      $scope.username = data.username;
+    });
+
+    mySocket.on('onlineContributors',function(data){
+      $scope.contributors = data.contributors;
+      console.log(data);
+    })
+
+    mySocket.on('updateChat',function(data){
+      console.log(data.from+' says '+data.message);
+      angular.element('.chatbox').append("")
+    });
+
+    $scope.sendMsg = function(message){
+      if($scope.message !== '')
+        mySocket.emit('sendMessage',{by:$scope.user,message:message,file:$scope.file},function(){
+          $scope.message = '';
+        });
+    };
 }]);
