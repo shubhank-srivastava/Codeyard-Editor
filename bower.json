@@ -17,6 +17,7 @@
     "firebase": "~2.0.4",
     "angular-socket-io": "~0.6.1",
     "codemirror": "~4.8.0",
-    "angular-ui-router": "~0.2.13"
+    "angular-ui-router": "~0.2.13",
+    "socket.io": "~1.2.1"
   }
 }

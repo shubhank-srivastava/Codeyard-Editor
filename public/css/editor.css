@@ -1,13 +1,49 @@
+body{
+	background-image: url(../../img/back.jpg);
+}
 #firepad{
       border: 1px solid rgb(200,200,200);
       height: 600px;
 }
+.chat{
+	position: fixed;
+	bottom: 0;
+	right: 4%;
+}
 .chatbox{
       border:1px solid rgb(200,200,200);
-      height: 450px;
+      height: 250px;
       border-bottom: 0;
+      background-color: white;
+      max-width: 260px;
+      overflow-y: auto;
 }
 .row{
       margin-right: 3%;
       margin-left: 3%;
+}
+.badge{
+      background-color: green;
+      color: green;
+}
+.link{cursor: pointer;}
+.notify-bg{
+      position: fixed;
+      height: 100%;
+      width: 100%;
+      background-color: rgba(0,0,0,0.9);
+      z-index: 100
+}
+
+.notify{
+      width: 100%;
+      position: absolute;
+      top: 30%;
+      background-color: rgb(255,255,255);
+      color: black;
+      text-align: center;
+      font-family: Century Gothic, Segoe UI Light;
+      font-size: 200%;
+      height: 40%;
+      z-index: 200;
 }

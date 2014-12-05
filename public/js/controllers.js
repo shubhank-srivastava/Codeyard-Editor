@@ -1,69 +1,106 @@
 'use strict';
 var Codeyard = angular.module('Codeyard',['ui.router','btford.socket-io']);
 
-Codeyard.controller('EditorController', ['$scope', 'mySocket',
-  function($scope,mySocket) {
+Codeyard.controller('EditorController', ['$scope', 'mySocket','Editor',
+  function($scope, mySocket, Editor) {
+    var str = window.location.pathname;
+    $scope.userid = str.substring(str.lastIndexOf("r")+2,str.lastIndexOf("/"));
+    $scope.fileid = str.substring(str.lastIndexOf("/")+1);  
     $scope.message = '';
-    $scope.file = 'FILENAME';
     $scope.contributors = [];
-    $scope.init = function() {
+    var FIREPAD;
+    function initEditor(contents) {
       var firepadRef = getExampleRef();
-      // Create CodeMirror (with lineWrapping on).
-      var codeMirror = CodeMirror(document.getElementById('firepad'), { lineNumbers:true,lineWrapping: true, mode:'javascript'});
-      // Create a random ID to use as our user ID (we must give this to firepad and FirepadUserList).
-      //var userId = Math.floor(Math.random() * 9999999999).toString();
-      // Create Firepad (with rich text features and our desired userId).
-      var firepad = Firepad.fromCodeMirror(firepadRef, codeMirror,
-          { richTextToolbar: false, richTextShortcuts: false});
-      // Create FirepadUserList (with our desired userId).
-      //var firepadUserList = FirepadUserList.fromDiv(firepadRef.child('users'),document.getElementById('userlist'), userId);
-      // Initialize contents.
-      firepad.on('ready', function() {
-        if (firepad.isHistoryEmpty()) {
-            firepad.setText('Check out the user list to the left!');
-        }
+      var codeMirror = CodeMirror(document.getElementById('firepad'), {
+        lineNumbers: true,
+        mode: 'javascript'
       });
+      var firepad = Firepad.fromCodeMirror(firepadRef, codeMirror, {
+        defaultText: contents
+      });
+      firepad.setUserId($scope.userid);
+      FIREPAD = firepad;
     }
 
     function getExampleRef() {
       var ref = new Firebase('https://codeyard.firebaseIO.com');
-      var hash = window.location.hash.replace(/#!\/edit/g, '');
+      var hash = $scope.file._id;
       if (hash) {
         ref = ref.child(hash);
       } else {
-        ref = ref.push(); // generate unique location.
-        window.location = window.location + '#' + ref.key(); // add it as a hash to the URL.
+        alert('You are not authorized');
+        window.location.assign('http://localhost:8080/NoAccess.html');
       }
       if (typeof console !== 'undefined')
         console.log('Firebase data: ', ref.toString());
       return ref;
     }
 
-    mySocket.on('connection',function(){
-      console('SOcket started');
+    mySocket.on('connect',function(){
+      mySocket.emit('init',{userid:$scope.userid,fileid:$scope.fileid});
     });
 
     mySocket.on('init',function(data){
       $scope.repo = data.repo;
-      $scope.userid = data.userid;
-      $scope.file = data.file;
-      $scope.username = data.username;
+      for (var i = 0; i < $scope.repo.contributors.length; i++) {
+        if($scope.repo.contributors[i]._id == $scope.userid)
+          $scope.username=$scope.repo.contributors[i].username;
+        if($scope.repo.contributors[i]._id == $scope.repo.owner)
+          $scope.ownername=$scope.repo.contributors[i].username;
+      };
+      for(var i=0;i<data.repo.files.length;i++){
+        if(data.repo.files[i]._id===$scope.fileid)
+          $scope.file = data.repo.files[i];
+      }   
+      initEditor(data.fileContents);
     });
 
-    mySocket.on('onlineContributors',function(data){
-      $scope.contributors = data.contributors;
-      console.log(data);
-    })
+    mySocket.on('imonline',function(data){
+      for (var i = 0; i < $scope.repo.contributors.length; i++) {
+        if($scope.repo.contributors[i]._id == data.userid)
+          $scope.repo.contributors[i].isonline=1;
+      };
+    });
 
     mySocket.on('updateChat',function(data){
-      console.log(data.from+' says '+data.message);
-      angular.element('.chatbox').append("")
+      var username;
+      for (var i = 0; i < $scope.repo.contributors.length; i++) {
+        if($scope.repo.contributors[i]._id==data.from)
+          username = $scope.repo.contributors[i].username;
+      };
+      angular.element('.chatbox').append("<br><b>"+username+"</b> : "+data.message);
+    });
+
+    mySocket.on('commit_done',function(data){
+
     });
 
     $scope.sendMsg = function(message){
       if($scope.message !== '')
-        mySocket.emit('sendMessage',{by:$scope.user,message:message,file:$scope.file},function(){
-          $scope.message = '';
-        });
+        mySocket.emit('sendMessage',{by:$scope.userid,message:message,file:$scope.fileid});
+        $scope.message = '';
     };
+
+    $scope.sendCommit = function(desc){
+      var content = FIREPAD.getText();
+      Editor.sendCommit(
+          { 
+            desc: desc,
+            content: content,
+            reposlug: $scope.repo.slug,
+            repoid: $scope.repo._id,
+            userid: $scope.repo.owner,
+            username: $scope.ownername,
+            file: $scope.file
+          }
+      ).success(function(data){
+        $scope.desc = '';
+        $scope.commit_done = "";
+        $scope.viewCommit = true;
+      }).error(function(err){
+        console.log(err);
+      });
+    };
+
+
 }]);

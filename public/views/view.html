@@ -6,28 +6,63 @@
 </head>
 <body>
 <section data-ng-controller="EditorController">
-	<div class="row" data-ng-init="init()">
+<div ng-show="viewCommit" class="notify-bg">
+    <div class="notify">
+      <br><br>The commit has been processed. 
+      <!--a href="http://localhost:3000/#!/repos/commits/{{commit_done}}">View</a--><br><br>
+      <span class="link" ng-click="viewCommit=false;">Okay</span>
+    </div>
+</div>
+<div class="row">
 	<div class="col-md-2">
-       <h3>Team</h3>
-       <div id="userlist">
-           <ul><li ng-repeat="contributor in contributors">{{contributor.username}}</li></ul>    
-       </div>
-	</div>
+    <br><br>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">Contributors</h3>
+      </div>
+      <ul class="list-group">
+        <li class="list-group-item" ng-repeat="contributor in repo.contributors" ng-hide="(contributor.username == username)">
+          <span data-ng-show="contributor._id==repo.owner"></span>
+          {{contributor.username}}<span class="badge" ng-show="contributor.isonline">&nbsp;</span>
+        </li>
+      </ul>
+    </div>               
+  </div>
 	<div class="col-md-7">
-	    <h3>{{file}}</h3>
-        <div id="firepad"></div>
+	    <h2>{{file.name}}</h2>
+      <h5>{{file.path}}</h5>
+      <div class="input-group" ng-if="userid==repo.owner">
+        <input type="text" class="form-control" ng-model="desc" placeholder="Description..."/>
+        <span class="input-group-btn">
+          <button class="btn btn-default" ng-click="sendCommit(desc);">Commit</button>
+        </span>
+      </div>
+      <br>
+      <div id="firepad"></div>
 	</div>
-    <div class="col-md-3">
-    	<h3>Discuss</h3>
-    	<div class="chatbox"></div>
-    	<div class="form-inline">
+  <div class="col-md-3">
+    <br><br>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h3 class="panel-title">{{repo.name}}</h3>
+      </div>
+      <div class="panel-body">
+         <h5>{{repo.desc}}</h5>
+         Total Contributors: {{repo.contributors.length}}<br>
+      </div>
+    </div>
+  </div>
+</div>
+  <div class="chat">
+      <h3>Discuss</h3>
+      <div class="chatbox"></div>
+      <div class="form-inline">
             <div class="form-group">
-        	    <input type="text" ng-model="message" class="form-control">
-        	    <button class="btn btn-default" ng-click="sendMsg(message)">Send</button>
+              <input type="text" ng-model="message" class="form-control">
+              <button class="btn btn-default" ng-click="sendMsg(message)">Send</button>
             </div>
-        </div>
-    </div>
-    </div>
+      </div>
+  </div>
 </section>
 </body>
 </html>
